@@ -7,6 +7,9 @@ plugins {
 group = 'team.safe'
 version = '0.0.1-SNAPSHOT'
 
+def querydslVersion = '5.0.0'
+def querydslSrcDir = 'build/generated/querydsl'
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -24,11 +27,42 @@ repositories {
 }
 
 dependencies {
+    // Spring Boot Starter
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // MySQL
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // QueryDSL
+    implementation "com.querydsl:querydsl-jpa:$querydslVersion:jakarta"
+    annotationProcessor "com.querydsl:querydsl-apt:$querydslVersion:jakarta"
+
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += querydslSrcDir
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.generatedSourceOutputDirectory = file(querydslSrcDir)
+}
+
+clean {
+    delete file(querydslSrcDir)
 }
 
 tasks.named('test') {
