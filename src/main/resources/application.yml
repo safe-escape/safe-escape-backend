@@ -1,3 +1,7 @@
+jwt:
+  secret: 12341234123412341234123412341234
+  token-validity-in-seconds: 3600  # 1시간
+
 spring:
   application:
   name: safe-escape-backend
