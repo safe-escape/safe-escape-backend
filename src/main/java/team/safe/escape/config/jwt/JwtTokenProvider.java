@@ -31,16 +31,12 @@ public class JwtTokenProvider {
         this.secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
-    public String createToken(String username) {
-        Claims claims = Jwts.claims().setSubject(username);
-        Date now = new Date();
-        Date validity = new Date(now.getTime() + jwtProperties.getTokenValidityInMilliseconds());
-        return Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(validity)
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
+    public String createAccessToken(String name) {
+        return createToken(name, jwtProperties.getAccessTokenValidityInMs());
+    }
+
+    public String createRefreshToken(String name) {
+        return createToken(name, jwtProperties.getRefreshTokenValidityInMs());
     }
 
     public String getUsername(String token) {
@@ -76,6 +72,19 @@ public class JwtTokenProvider {
             return bearer.substring(BEARER_PREFIX.length());
         }
         return null;
+    }
+
+    private String createToken(String name, long validityInMs) {
+        Claims claims = Jwts.claims().setSubject(name);
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + validityInMs);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(validity)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .compact();
     }
 
 }

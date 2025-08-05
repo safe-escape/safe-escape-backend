@@ -20,6 +20,3 @@ spring:
   server:
     port: 8080
 
-jwt:
-  secret: 12341234123412341234123412341234
-  token-validity-in-milliseconds: 3600000  # 1시간

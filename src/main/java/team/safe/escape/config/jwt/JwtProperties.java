@@ -1,15 +1,33 @@
 package team.safe.escape.config.jwt;
 
 import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "jwt")
-@Getter
-@Setter
+@RequiredArgsConstructor
 public class JwtProperties {
-    private String secret;
-    private long tokenValidityInMilliseconds;
+
+    @Getter
+    @Value("${JWT_SECRET}")
+    public String secret;
+
+    @Value("${JWT_ACCESS_VALIDITY_SECONDS}")
+    private long accessTokenValidityInSeconds;
+
+    @Value("${JWT_REFRESH_VALIDITY_SECONDS}")
+    private long refreshTokenValidityInSeconds;
+
+    public long getAccessTokenValidityInMs() {
+        return convertSecondsToMs(this.accessTokenValidityInSeconds);
+    }
+
+    public long getRefreshTokenValidityInMs() {
+        return convertSecondsToMs(this.refreshTokenValidityInSeconds);
+    }
+
+    private long convertSecondsToMs(long seconds) {
+        return seconds * 1000L;
+    }
 }
