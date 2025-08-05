@@ -10,8 +10,6 @@ import team.safe.escape.user.dto.response.RegisterResponse;
 import team.safe.escape.user.entity.User;
 import team.safe.escape.user.repository.UserRepository;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -21,21 +19,18 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
 
     public RegisterResponse register(String email, String name, String password) {
-        Optional.ofNullable(userRepository.findByEmail(email))
-                .ifPresent(user -> {
-                    throw new EscapeException(ErrorCode.EMAIL_ALREADY_REGISTERED, email);
-                });
+        if (userRepository.existsUserByEmail(email)) {
+            throw new EscapeException(ErrorCode.EMAIL_ALREADY_REGISTERED, email);
+        }
 
-        User user = User.builder()
+        userRepository.save(User.builder()
                 .name(name)
                 .email(email)
                 .password(password)
-                .build();
+                .build());
 
-        userRepository.save(user);
-
-        String accessToken = jwtTokenProvider.createAccessToken(name);
-        String refreshToken = jwtTokenProvider.createRefreshToken(name);
+        String accessToken = jwtTokenProvider.createAccessTokenByUser(name);
+        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(name);
         return RegisterResponse.of(accessToken, refreshToken);
     }
 

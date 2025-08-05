@@ -3,12 +3,14 @@ package team.safe.escape.user.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import team.safe.escape.common.entity.BaseTimeEntity;
 
 @Entity
 @Table
 @Builder
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class User extends BaseTimeEntity {

@@ -23,6 +23,8 @@ public class JwtTokenProvider {
     private final UserDetailsService userDetailsService;
     private static final String AUTH_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final String ROLE = "role";
+    private static final String TYPE = "type";
 
     private Key secretKey;
 
@@ -31,21 +33,28 @@ public class JwtTokenProvider {
         this.secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
-    public String createAccessToken(String name) {
-        return createToken(name, jwtProperties.getAccessTokenValidityInMs(), TokenType.ACCESS);
+    public String createAccessTokenByAdmin(String name) {
+        return createAccessToken(name, Role.ADMIN);
     }
 
-    public String createRefreshToken(String name) {
-        return createToken(name, jwtProperties.getRefreshTokenValidityInMs(), TokenType.REFRESH);
+    public String createAccessTokenByUser(String name) {
+        return createAccessToken(name, Role.USER);
     }
 
-    public String getUsername(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+    private String createAccessToken(String name, Role role) {
+        return createToken(name, jwtProperties.getAccessTokenValidityInMs(), TokenType.ACCESS, role);
+    }
+
+    public String createRefreshTokenByAdmin(String name) {
+        return createRefreshToken(name, Role.ADMIN);
+    }
+
+    public String createRefreshTokenByUser(String name) {
+        return createRefreshToken(name, Role.USER);
+    }
+
+    public String createRefreshToken(String name, Role role) {
+        return createToken(name, jwtProperties.getRefreshTokenValidityInMs(), TokenType.REFRESH, role);
     }
 
     public boolean validateToken(String token) {
@@ -74,9 +83,10 @@ public class JwtTokenProvider {
         return null;
     }
 
-    private String createToken(String name, long validityInMs, TokenType tokenType) {
+    private String createToken(String name, long validityInMs, TokenType tokenType, Role role) {
         Claims claims = Jwts.claims().setSubject(name);
-        claims.put("type", tokenType);
+        claims.put(TYPE, tokenType);
+        claims.put(ROLE, role);
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMs);
 
@@ -87,5 +97,15 @@ public class JwtTokenProvider {
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
+
+    private String getUsername(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+
 
 }
