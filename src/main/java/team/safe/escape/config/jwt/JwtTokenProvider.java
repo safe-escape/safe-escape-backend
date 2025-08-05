@@ -32,11 +32,11 @@ public class JwtTokenProvider {
     }
 
     public String createAccessToken(String name) {
-        return createToken(name, jwtProperties.getAccessTokenValidityInMs());
+        return createToken(name, jwtProperties.getAccessTokenValidityInMs(), TokenType.ACCESS);
     }
 
     public String createRefreshToken(String name) {
-        return createToken(name, jwtProperties.getRefreshTokenValidityInMs());
+        return createToken(name, jwtProperties.getRefreshTokenValidityInMs(), TokenType.REFRESH);
     }
 
     public String getUsername(String token) {
@@ -74,8 +74,9 @@ public class JwtTokenProvider {
         return null;
     }
 
-    private String createToken(String name, long validityInMs) {
+    private String createToken(String name, long validityInMs, TokenType tokenType) {
         Claims claims = Jwts.claims().setSubject(name);
+        claims.put("type", tokenType);
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMs);
 
