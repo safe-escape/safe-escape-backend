@@ -22,4 +22,4 @@ spring:
 
 jwt:
   secret: 12341234123412341234123412341234
-  validity-in-seconds: 3600  # 1시간
+  token-validity-in-milliseconds: 3600000  # 1시간

@@ -12,6 +12,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // TODO 유저 repo 만든 다음 변경되어야 함
+        // 현재는 테스트용으로 user 에 대해서만 사용 가능
         if ("user".equals(username)) {
             return User.builder()
                     .username("user")
@@ -21,4 +23,5 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
         throw new UsernameNotFoundException("User not found");
     }
+
 }
