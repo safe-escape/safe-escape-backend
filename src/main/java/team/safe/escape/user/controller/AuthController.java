@@ -1,5 +1,6 @@
 package team.safe.escape.user.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,7 +19,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ApiResponse<RegisterResponse> register(@RequestBody RegisterRequest request) {
+    public ApiResponse<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
         RegisterResponse response = authService.register(request.getEmail(), request.getName(), request.getPassword());
         return ApiResponse.success(response);
     }

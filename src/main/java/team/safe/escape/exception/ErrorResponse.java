@@ -6,12 +6,12 @@ import java.time.LocalDateTime;
 
 @Getter
 public class ErrorResponse {
-    final int code;
+    final String code;
     final String message;
     final Object data;
     final LocalDateTime timestamp;
 
-    private ErrorResponse(int code, String message, Object data) {
+    private ErrorResponse(String code, String message, Object data) {
         this.code = code;
         this.message = message;
         this.data = data;
@@ -19,7 +19,7 @@ public class ErrorResponse {
     }
 
 
-    public static ErrorResponse of(int code, String message, Object data) {
+    public static ErrorResponse of(String code, String message, Object data) {
         return new ErrorResponse(code, message, data);
     }
 
