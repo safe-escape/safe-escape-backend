@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
     EXIT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 비상구입니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."),
     EMAIL_ALREADY_REGISTERED(HttpStatus.UNAUTHORIZED, "이미 가입된 이메일입니다."),
     INVALID_FORMAT_EMAIL(HttpStatus.BAD_REQUEST, "이메일 형식이 올바르지 않습니다."),
     EMAIL_DOES_NOT_EXIST(HttpStatus.NOT_FOUND, "존재하지 않은 이메일입니다."),
