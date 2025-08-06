@@ -8,37 +8,27 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-import team.safe.escape.user.entity.RefreshToken;
 import team.safe.escape.user.entity.User;
-import team.safe.escape.user.repository.RefreshTokenRepository;
-import team.safe.escape.user.repository.UserRepository;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
+    private final JwtTokenService jwtTokenService;
     private final JwtProperties jwtProperties;
-    private final UserRepository userRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final RedisTemplate<String, String> redisTemplate;
 
     private static final String AUTH_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
     private static final String ROLE = "role";
     private static final String TYPE = "type";
-    private static final String BLACKLIST_PREFIX = "blacklist:";
 
     private Key secretKey;
 
@@ -69,17 +59,13 @@ public class JwtTokenProvider {
 
     public String createRefreshToken(String name, Long userId, Role role) {
         String refreshToken = createToken(name, jwtProperties.getRefreshTokenValidityInMs(), TokenType.REFRESH, role);
-        refreshTokenRepository.deleteByUserId(userId);
-        refreshTokenRepository.save(RefreshToken.builder()
-                .userId(userId)
-                .token(refreshToken)
-                .expiresAt(LocalDateTime.now().plusSeconds(jwtProperties.getRefreshTokenValidityInSeconds()))
-                .build());
+        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(jwtProperties.getRefreshTokenValidityInSeconds());
+        jwtTokenService.refreshToken(userId, refreshToken, expiresAt);
         return refreshToken;
     }
 
     public boolean validateToken(String token) {
-        if (isBlacklisted(token)) {
+        if (jwtTokenService.isBlacklisted(token)) {
             return false;
         }
 
@@ -96,8 +82,7 @@ public class JwtTokenProvider {
 
     public Authentication getAuthentication(String token) {
         String username = getUsername(token);
-        User user = Optional.ofNullable(userRepository.findByEmail(username))
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = jwtTokenService.getAuthenticationUser(username);
         CustomUserDetails userDetails = new CustomUserDetails(user);
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
@@ -111,22 +96,8 @@ public class JwtTokenProvider {
     }
 
     public void blacklistToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
-        Date expiration = claims.getExpiration();
-        long now = System.currentTimeMillis();
-        long expireInMs = expiration.getTime() - now;
-        if (expireInMs > 0) {
-            redisTemplate.opsForValue().set(BLACKLIST_PREFIX + token, "logout", expireInMs, TimeUnit.MILLISECONDS);
-        }
-    }
-
-    public boolean isBlacklisted(String token) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_PREFIX + token));
+        Claims claims = parseClaims(token);
+        jwtTokenService.setBlackList(claims.getExpiration(), token);
     }
 
     private String createToken(String name, long validityInMs, TokenType tokenType, Role role) {
@@ -145,13 +116,16 @@ public class JwtTokenProvider {
     }
 
     private String getUsername(String token) {
+        return parseClaims(token)
+                .getSubject();
+    }
+
+    private Claims parseClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .getBody();
     }
-
 
 }
