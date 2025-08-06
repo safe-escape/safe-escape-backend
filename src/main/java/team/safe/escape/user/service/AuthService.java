@@ -1,5 +1,6 @@
 package team.safe.escape.user.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,16 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+
+    public String resolveToken(HttpServletRequest request) {
+        return jwtTokenProvider.resolveToken(request);
+    }
+
+    public void logout(String token) {
+        if (token != null && jwtTokenProvider.validateToken(token)) {
+            jwtTokenProvider.blacklistToken(token);
+        }
+    }
 
     public TokenResponse register(String email, String name, String password) {
         if (userRepository.existsUserByEmail(email)) {

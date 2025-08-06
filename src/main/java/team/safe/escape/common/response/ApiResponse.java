@@ -19,4 +19,10 @@ public class ApiResponse<T> {
                 .data(data)
                 .build();
     }
+
+    public static <T> ApiResponse<T> success() {
+        return ApiResponse.<T>builder()
+                .code("ok")
+                .build();
+    }
 }

@@ -1,5 +1,6 @@
 package team.safe.escape.user.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,6 +42,13 @@ public class AuthApiController {
 
         LoginResponse response = authService.loginByUser(request.getEmail(), request.getPassword());
         return ApiResponse.success(response);
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Object> logout(HttpServletRequest request) {
+        String token = authService.resolveToken(request);
+        authService.logout(token);
+        return ApiResponse.success();
     }
 
 }
