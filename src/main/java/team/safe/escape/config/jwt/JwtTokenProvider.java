@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -26,11 +28,13 @@ public class JwtTokenProvider {
 
     private final JwtProperties jwtProperties;
     private final UserRepository userRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
     private static final String AUTH_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
     private static final String ROLE = "role";
     private static final String TYPE = "type";
+    private static final String BLACKLIST_PREFIX = "blacklist:";
 
     private Key secretKey;
 
@@ -64,6 +68,10 @@ public class JwtTokenProvider {
     }
 
     public boolean validateToken(String token) {
+        if (isBlacklisted(token)) {
+            return false;
+        }
+
         try {
             Claims body = Jwts.parserBuilder()
                     .setSigningKey(secretKey)
@@ -89,6 +97,25 @@ public class JwtTokenProvider {
             return bearer.substring(BEARER_PREFIX.length());
         }
         return null;
+    }
+
+    public void blacklistToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        Date expiration = claims.getExpiration();
+        long now = System.currentTimeMillis();
+        long expireInMs = expiration.getTime() - now;
+        if (expireInMs > 0) {
+            redisTemplate.opsForValue().set(BLACKLIST_PREFIX + token, "logout", expireInMs, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    public boolean isBlacklisted(String token) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_PREFIX + token));
     }
 
     private String createToken(String name, long validityInMs, TokenType tokenType, Role role) {
