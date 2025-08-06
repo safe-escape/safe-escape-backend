@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+@Getter
 @Component
 @RequiredArgsConstructor
 public class JwtProperties {
@@ -14,10 +15,10 @@ public class JwtProperties {
     public String secret;
 
     @Value("${JWT_ACCESS_VALIDITY_SECONDS}")
-    private long accessTokenValidityInSeconds;
+    long accessTokenValidityInSeconds;
 
     @Value("${JWT_REFRESH_VALIDITY_SECONDS}")
-    private long refreshTokenValidityInSeconds;
+    long refreshTokenValidityInSeconds;
 
     public long getAccessTokenValidityInMs() {
         return convertSecondsToMs(this.accessTokenValidityInSeconds);

@@ -13,11 +13,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
+import team.safe.escape.user.entity.RefreshToken;
 import team.safe.escape.user.entity.User;
+import team.safe.escape.user.repository.RefreshTokenRepository;
 import team.safe.escape.user.repository.UserRepository;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +31,7 @@ public class JwtTokenProvider {
 
     private final JwtProperties jwtProperties;
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
     private static final String AUTH_HEADER = "Authorization";
@@ -55,16 +59,23 @@ public class JwtTokenProvider {
         return createToken(name, jwtProperties.getAccessTokenValidityInMs(), TokenType.ACCESS, role);
     }
 
-    public String createRefreshTokenByAdmin(String name) {
-        return createRefreshToken(name, Role.ADMIN);
+    public String createRefreshTokenByAdmin(String name, Long userId) {
+        return createRefreshToken(name, userId, Role.ADMIN);
     }
 
-    public String createRefreshTokenByUser(String name) {
-        return createRefreshToken(name, Role.USER);
+    public String createRefreshTokenByUser(String name, Long userId) {
+        return createRefreshToken(name, userId, Role.USER);
     }
 
-    public String createRefreshToken(String name, Role role) {
-        return createToken(name, jwtProperties.getRefreshTokenValidityInMs(), TokenType.REFRESH, role);
+    public String createRefreshToken(String name, Long userId, Role role) {
+        String refreshToken = createToken(name, jwtProperties.getRefreshTokenValidityInMs(), TokenType.REFRESH, role);
+        refreshTokenRepository.deleteByUserId(userId);
+        refreshTokenRepository.save(RefreshToken.builder()
+                .userId(userId)
+                .token(refreshToken)
+                .expiresAt(LocalDateTime.now().plusSeconds(jwtProperties.getRefreshTokenValidityInSeconds()))
+                .build());
+        return refreshToken;
     }
 
     public boolean validateToken(String token) {

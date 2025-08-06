@@ -1,10 +1,11 @@
-package team.safe.escape.user.repository;
+package team.safe.escape.user.repository.impl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import team.safe.escape.user.entity.User;
 import team.safe.escape.user.enumeration.UserRole;
+import team.safe.escape.user.repository.UserRepositoryCustom;
 
 import static team.safe.escape.user.entity.QUser.user;
 

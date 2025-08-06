@@ -39,7 +39,7 @@ public class AuthService {
             throw new EscapeException(ErrorCode.EMAIL_ALREADY_REGISTERED, email);
         }
 
-        userRepository.save(User.builder()
+        User user = userRepository.save(User.builder()
                 .name(name)
                 .email(email)
                 .password(password)
@@ -47,7 +47,7 @@ public class AuthService {
                 .build());
 
         String accessToken = jwtTokenProvider.createAccessTokenByUser(email);
-        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email);
+        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email, user.getId());
         return TokenResponse.of(accessToken, refreshToken);
     }
 
@@ -60,7 +60,7 @@ public class AuthService {
         }
 
         String accessToken = jwtTokenProvider.createAccessTokenByUser(email);
-        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email);
+        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email, user.getId());
         return LoginResponse.of(accessToken, refreshToken, UserResponseDto.ofUser(user));
     }
 
@@ -73,7 +73,7 @@ public class AuthService {
         }
 
         String accessToken = jwtTokenProvider.createAccessTokenByAdmin(email);
-        String refreshToken = jwtTokenProvider.createRefreshTokenByAdmin(email);
+        String refreshToken = jwtTokenProvider.createRefreshTokenByAdmin(email, user.getId());
         return LoginResponse.of(accessToken, refreshToken, UserResponseDto.ofUser(user));
     }
 }
