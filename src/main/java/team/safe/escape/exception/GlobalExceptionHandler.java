@@ -12,7 +12,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public ResponseEntity<ErrorResponse> handlerEscapeException(EscapeException ex) {
         ErrorCode code = ex.getCode();
-        ErrorResponse errorResponse = ErrorResponse.of(code.getStatus().value(), code.getMessage(), ex.getData());
+        ErrorResponse errorResponse = ErrorResponse.of(code.name(), code.getMessage(), ex.getData());
 
         return ResponseEntity
                 .status(code.getStatus())
