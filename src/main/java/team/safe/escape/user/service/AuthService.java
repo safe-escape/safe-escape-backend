@@ -40,8 +40,8 @@ public class AuthService {
         return TokenResponse.of(accessToken, refreshToken);
     }
 
-    public LoginResponse login(String email, String password) {
-        User user = Optional.ofNullable(userRepository.findByEmail(email))
+    public LoginResponse loginByUser(String email, String password) {
+        User user = Optional.ofNullable(userRepository.findUserByEmail(email))
                 .orElseThrow(() -> new EscapeException(ErrorCode.EMAIL_DOES_NOT_EXIST, email));
 
         if (!user.getPassword().equals(password)) {
@@ -50,12 +50,19 @@ public class AuthService {
 
         String accessToken = jwtTokenProvider.createAccessTokenByUser(email);
         String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email);
-        UserDto userDto = UserDto.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .password(user.getPassword())
-                .build();
+        return LoginResponse.of(accessToken, refreshToken, UserDto.ofUser(user));
+    }
 
-        return LoginResponse.of(accessToken, refreshToken, userDto);
+    public LoginResponse loginByAdmin(String email, String password) {
+        User user = Optional.ofNullable(userRepository.findAdminByEmail(email))
+                .orElseThrow(() -> new EscapeException(ErrorCode.EMAIL_DOES_NOT_EXIST, email));
+
+        if (!user.getPassword().equals(password)) {
+            throw new EscapeException(ErrorCode.PASSWORD_MISMATCH);
+        }
+
+        String accessToken = jwtTokenProvider.createAccessTokenByAdmin(email);
+        String refreshToken = jwtTokenProvider.createRefreshTokenByAdmin(email);
+        return LoginResponse.of(accessToken, refreshToken, UserDto.ofUser(user));
     }
 }

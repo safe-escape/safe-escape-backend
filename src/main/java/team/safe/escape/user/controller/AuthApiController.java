@@ -39,7 +39,7 @@ public class AuthApiController {
             throw new EscapeException(ErrorCode.INVALID_FORMAT_EMAIL, request.getEmail());
         }
 
-        LoginResponse response = authService.login(request.getEmail(), request.getPassword());
+        LoginResponse response = authService.loginByUser(request.getEmail(), request.getPassword());
         return ApiResponse.success(response);
     }
 
