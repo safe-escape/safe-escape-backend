@@ -6,9 +6,14 @@ import org.springframework.transaction.annotation.Transactional;
 import team.safe.escape.config.jwt.JwtTokenProvider;
 import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
-import team.safe.escape.user.dto.response.RegisterResponse;
+import team.safe.escape.user.dto.response.LoginResponse;
+import team.safe.escape.user.dto.response.TokenResponse;
+import team.safe.escape.user.dto.response.UserResponseDto;
 import team.safe.escape.user.entity.User;
+import team.safe.escape.user.enumeration.UserRole;
 import team.safe.escape.user.repository.UserRepository;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +23,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public RegisterResponse register(String email, String name, String password) {
+    public TokenResponse register(String email, String name, String password) {
         if (userRepository.existsUserByEmail(email)) {
             throw new EscapeException(ErrorCode.EMAIL_ALREADY_REGISTERED, email);
         }
@@ -27,11 +32,37 @@ public class AuthService {
                 .name(name)
                 .email(email)
                 .password(password)
+                .role(UserRole.USER)
                 .build());
 
-        String accessToken = jwtTokenProvider.createAccessTokenByUser(name);
-        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(name);
-        return RegisterResponse.of(accessToken, refreshToken);
+        String accessToken = jwtTokenProvider.createAccessTokenByUser(email);
+        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email);
+        return TokenResponse.of(accessToken, refreshToken);
     }
 
+    public LoginResponse loginByUser(String email, String password) {
+        User user = Optional.ofNullable(userRepository.findUserByEmail(email))
+                .orElseThrow(() -> new EscapeException(ErrorCode.EMAIL_DOES_NOT_EXIST, email));
+
+        if (!user.getPassword().equals(password)) {
+            throw new EscapeException(ErrorCode.PASSWORD_MISMATCH);
+        }
+
+        String accessToken = jwtTokenProvider.createAccessTokenByUser(email);
+        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email);
+        return LoginResponse.of(accessToken, refreshToken, UserResponseDto.of(user.getId(), user.getName(), user.getEmail()));
+    }
+
+    public LoginResponse loginByAdmin(String email, String password) {
+        User user = Optional.ofNullable(userRepository.findAdminByEmail(email))
+                .orElseThrow(() -> new EscapeException(ErrorCode.EMAIL_DOES_NOT_EXIST, email));
+
+        if (!user.getPassword().equals(password)) {
+            throw new EscapeException(ErrorCode.PASSWORD_MISMATCH);
+        }
+
+        String accessToken = jwtTokenProvider.createAccessTokenByAdmin(email);
+        String refreshToken = jwtTokenProvider.createRefreshTokenByAdmin(email);
+        return LoginResponse.of(accessToken, refreshToken, UserResponseDto.of(user.getId(), user.getName(), user.getEmail()));
+    }
 }

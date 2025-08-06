@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import team.safe.escape.common.entity.BaseTimeEntity;
+import team.safe.escape.user.enumeration.UserRole;
 
 @Entity
 @Table
@@ -27,4 +28,7 @@ public class User extends BaseTimeEntity {
 
     @Column
     private String password;
+
+    @Enumerated(value = EnumType.STRING)
+    private UserRole role;
 }

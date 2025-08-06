@@ -5,7 +5,8 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class RegisterResponse {
-    private String accessToken;
-    private String refreshToken;
+public class UserResponseDto {
+    private Long id;
+    private String name;
+    private String email;
 }
