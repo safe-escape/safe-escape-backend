@@ -10,6 +10,7 @@ import team.safe.escape.user.dto.UserDto;
 import team.safe.escape.user.dto.response.LoginResponse;
 import team.safe.escape.user.dto.response.TokenResponse;
 import team.safe.escape.user.entity.User;
+import team.safe.escape.user.enumeration.UserRole;
 import team.safe.escape.user.repository.UserRepository;
 
 import java.util.Optional;
@@ -31,6 +32,7 @@ public class AuthService {
                 .name(name)
                 .email(email)
                 .password(password)
+                .role(UserRole.USER)
                 .build());
 
         String accessToken = jwtTokenProvider.createAccessTokenByUser(email);
