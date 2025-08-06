@@ -50,7 +50,7 @@ public class AuthService {
 
         String accessToken = jwtTokenProvider.createAccessTokenByUser(email);
         String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email);
-        return LoginResponse.of(accessToken, refreshToken, UserResponseDto.of(user.getId(), user.getName(), user.getEmail()));
+        return LoginResponse.of(accessToken, refreshToken, UserResponseDto.ofUser(user));
     }
 
     public LoginResponse loginByAdmin(String email, String password) {
@@ -63,6 +63,6 @@ public class AuthService {
 
         String accessToken = jwtTokenProvider.createAccessTokenByAdmin(email);
         String refreshToken = jwtTokenProvider.createRefreshTokenByAdmin(email);
-        return LoginResponse.of(accessToken, refreshToken, UserResponseDto.of(user.getId(), user.getName(), user.getEmail()));
+        return LoginResponse.of(accessToken, refreshToken, UserResponseDto.ofUser(user));
     }
 }
