@@ -1,6 +1,5 @@
 package team.safe.escape.config.jwt;
 
-import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,7 +8,6 @@ import team.safe.escape.user.entity.User;
 import java.util.Collection;
 import java.util.List;
 
-@Getter
 public record CustomUserDetails(User user) implements UserDetails {
 
     @Override
