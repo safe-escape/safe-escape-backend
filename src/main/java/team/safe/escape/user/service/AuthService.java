@@ -6,9 +6,13 @@ import org.springframework.transaction.annotation.Transactional;
 import team.safe.escape.config.jwt.JwtTokenProvider;
 import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
-import team.safe.escape.user.dto.response.RegisterResponse;
+import team.safe.escape.user.dto.UserDto;
+import team.safe.escape.user.dto.response.LoginResponse;
+import team.safe.escape.user.dto.response.TokenResponse;
 import team.safe.escape.user.entity.User;
 import team.safe.escape.user.repository.UserRepository;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +22,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public RegisterResponse register(String email, String name, String password) {
+    public TokenResponse register(String email, String name, String password) {
         if (userRepository.existsUserByEmail(email)) {
             throw new EscapeException(ErrorCode.EMAIL_ALREADY_REGISTERED, email);
         }
@@ -29,9 +33,27 @@ public class AuthService {
                 .password(password)
                 .build());
 
-        String accessToken = jwtTokenProvider.createAccessTokenByUser(name);
-        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(name);
-        return RegisterResponse.of(accessToken, refreshToken);
+        String accessToken = jwtTokenProvider.createAccessTokenByUser(email);
+        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email);
+        return TokenResponse.of(accessToken, refreshToken);
     }
 
+    public LoginResponse login(String email, String password) {
+        User user = Optional.ofNullable(userRepository.findByEmail(email))
+                .orElseThrow(() -> new EscapeException(ErrorCode.EMAIL_DOES_NOT_EXIST, email));
+
+        if (!user.getPassword().equals(password)) {
+            throw new EscapeException(ErrorCode.PASSWORD_MISMATCH);
+        }
+
+        String accessToken = jwtTokenProvider.createAccessTokenByUser(email);
+        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email);
+        UserDto userDto = UserDto.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .password(user.getPassword())
+                .build();
+
+        return LoginResponse.of(accessToken, refreshToken, userDto);
+    }
 }
