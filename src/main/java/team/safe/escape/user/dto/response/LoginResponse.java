@@ -2,14 +2,13 @@ package team.safe.escape.user.dto.response;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import team.safe.escape.user.dto.UserDto;
 
 @Getter
 @NoArgsConstructor
 public class LoginResponse extends TokenResponse {
-    private UserDto user;
+    private UserResponseDto user;
 
-    public static LoginResponse of(String accessToken, String refreshToken, UserDto user) {
+    public static LoginResponse of(String accessToken, String refreshToken, UserResponseDto user) {
         LoginResponse instance = new LoginResponse();
         instance.accessToken = accessToken;
         instance.refreshToken = refreshToken;

@@ -6,9 +6,9 @@ import org.springframework.transaction.annotation.Transactional;
 import team.safe.escape.config.jwt.JwtTokenProvider;
 import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
-import team.safe.escape.user.dto.UserDto;
 import team.safe.escape.user.dto.response.LoginResponse;
 import team.safe.escape.user.dto.response.TokenResponse;
+import team.safe.escape.user.dto.response.UserResponseDto;
 import team.safe.escape.user.entity.User;
 import team.safe.escape.user.enumeration.UserRole;
 import team.safe.escape.user.repository.UserRepository;
@@ -50,7 +50,7 @@ public class AuthService {
 
         String accessToken = jwtTokenProvider.createAccessTokenByUser(email);
         String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email);
-        return LoginResponse.of(accessToken, refreshToken, UserDto.ofUser(user));
+        return LoginResponse.of(accessToken, refreshToken, UserResponseDto.of(user.getId(), user.getName()));
     }
 
     public LoginResponse loginByAdmin(String email, String password) {
@@ -63,6 +63,6 @@ public class AuthService {
 
         String accessToken = jwtTokenProvider.createAccessTokenByAdmin(email);
         String refreshToken = jwtTokenProvider.createRefreshTokenByAdmin(email);
-        return LoginResponse.of(accessToken, refreshToken, UserDto.ofUser(user));
+        return LoginResponse.of(accessToken, refreshToken, UserResponseDto.of(user.getId(), user.getName()));
     }
 }
