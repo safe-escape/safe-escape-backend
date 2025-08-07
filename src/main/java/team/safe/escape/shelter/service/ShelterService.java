@@ -12,6 +12,8 @@ import team.safe.escape.shelter.entity.ShelterBookmarkId;
 import team.safe.escape.shelter.repository.ShelterBookmarkRepository;
 import team.safe.escape.shelter.repository.ShelterRepository;
 
+import java.util.Optional;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -29,12 +31,25 @@ public class ShelterService {
         return ShelterResponse.ofShelter(shelter);
     }
 
+    public void deleteBookmark(Long memberId, Long shelterId) {
+        ShelterBookmark shelterBookmark = getShelterBookmarkOrThrow(memberId, shelterId);
+        shelterBookmarkRepository.delete(shelterBookmark);
+    }
+
     private Shelter getShelterById(Long shelterId) {
-        return shelterRepository.findById(shelterId).orElseThrow(() -> new EscapeException(ErrorCode.SHELTER_NOT_FOUND, shelterId));
+        return shelterRepository.findById(shelterId)
+                .orElseThrow(() -> new EscapeException(ErrorCode.SHELTER_NOT_FOUND, shelterId));
     }
 
     private boolean isAlreadyBookmarked(Long memberId, Long shelterId) {
         return shelterBookmarkRepository.existsByMemberIdAndShelterId(memberId, shelterId);
+    }
+
+    private ShelterBookmark getShelterBookmarkOrThrow(Long memberId, Long shelterId) {
+        return Optional.ofNullable(shelterBookmarkRepository.findByMemberIdAndShelterId(memberId, shelterId))
+                .orElseThrow(() -> new EscapeException(
+                        ErrorCode.SHELTER_BOOKMARK_NOT_FOUND,
+                        String.format("memberId: %d, shelterId: %d", memberId, shelterId)));
     }
 
     private void saveShelterBookmark(Long memberId, Long shelterId) {
