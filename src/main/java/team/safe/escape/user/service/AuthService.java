@@ -8,13 +8,13 @@ import team.safe.escape.config.jwt.JwtTokenProvider;
 import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
 import team.safe.escape.user.dto.response.LoginResponse;
+import team.safe.escape.user.dto.response.MemberResponseDto;
 import team.safe.escape.user.dto.response.TokenResponse;
-import team.safe.escape.user.dto.response.UserResponseDto;
+import team.safe.escape.user.entity.Member;
 import team.safe.escape.user.entity.RefreshToken;
-import team.safe.escape.user.entity.User;
-import team.safe.escape.user.enumeration.UserRole;
+import team.safe.escape.user.enumeration.MemberRole;
+import team.safe.escape.user.repository.MemberRepository;
 import team.safe.escape.user.repository.RefreshTokenRepository;
-import team.safe.escape.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -24,7 +24,7 @@ import java.util.Optional;
 @Transactional
 public class AuthService {
 
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -37,68 +37,68 @@ public class AuthService {
     }
 
     public TokenResponse register(String email, String name, String password) {
-        if (userRepository.existsUserByEmail(email)) {
+        if (memberRepository.existsUserByEmail(email)) {
             throw new EscapeException(ErrorCode.EMAIL_ALREADY_REGISTERED, email);
         }
 
-        User user = userRepository.save(User.builder()
+        Member member = memberRepository.save(Member.builder()
                 .name(name)
                 .email(email)
                 .password(password)
-                .role(UserRole.USER)
+                .role(MemberRole.USER)
                 .build());
 
-        return createToken(user);
+        return createToken(member);
     }
 
     public LoginResponse loginByUser(String email, String password) {
-        User user = Optional.ofNullable(userRepository.findUserByEmail(email))
+        Member member = Optional.ofNullable(memberRepository.findUserByEmail(email))
                 .orElseThrow(() -> new EscapeException(ErrorCode.EMAIL_DOES_NOT_EXIST, email));
 
-        if (!user.getPassword().equals(password)) {
+        if (!member.getPassword().equals(password)) {
             throw new EscapeException(ErrorCode.PASSWORD_MISMATCH);
         }
 
-        return LoginResponse.of(createToken(user), UserResponseDto.ofUser(user));
+        return LoginResponse.of(createToken(member), MemberResponseDto.ofUser(member));
     }
 
     public LoginResponse loginByAdmin(String email, String password) {
-        User user = Optional.ofNullable(userRepository.findAdminByEmail(email))
+        Member member = Optional.ofNullable(memberRepository.findAdminByEmail(email))
                 .orElseThrow(() -> new EscapeException(ErrorCode.EMAIL_DOES_NOT_EXIST, email));
 
-        if (!user.getPassword().equals(password)) {
+        if (!member.getPassword().equals(password)) {
             throw new EscapeException(ErrorCode.PASSWORD_MISMATCH);
         }
 
-        return LoginResponse.of(createToken(user), UserResponseDto.ofUser(user));
+        return LoginResponse.of(createToken(member), MemberResponseDto.ofUser(member));
     }
 
-    public TokenResponse refreshToken(String refreshToken, String accessToken, Long userId, UserRole role) {
-        User user = validUserByIdAndReturn(userId, role);
-        RefreshToken refresh = validateUserByIdAndReturn(refreshToken, userId);
+    public TokenResponse refreshToken(String refreshToken, String accessToken, Long memberId, MemberRole role) {
+        Member member = validUserByIdAndReturn(memberId, role);
+        RefreshToken refresh = validateUserByIdAndReturn(refreshToken, memberId);
         blacklistAccessToken(accessToken);
         refresh.expired();
-        return createToken(user);
+        return createToken(member);
     }
 
-    private User validUserByIdAndReturn(Long userId, UserRole role) {
-        User user = null;
-        if (role == UserRole.USER) {
-            user = userRepository.findUserById(userId);
-        } else if (role == UserRole.ADMIN) {
-            user = userRepository.findAdminById(userId);
+    private Member validUserByIdAndReturn(Long memberId, MemberRole role) {
+        Member member = null;
+        if (role == MemberRole.USER) {
+            member = memberRepository.findUserById(memberId);
+        } else if (role == MemberRole.ADMIN) {
+            member = memberRepository.findAdminById(memberId);
         }
-        if (user == null) {
-            throw new EscapeException(ErrorCode.USER_NOT_FOUND, userId);
+        if (member == null) {
+            throw new EscapeException(ErrorCode.USER_NOT_FOUND, memberId);
         }
-        return user;
+        return member;
     }
 
-    private RefreshToken validateUserByIdAndReturn(String refreshToken, Long userId) {
+    private RefreshToken validateUserByIdAndReturn(String refreshToken, Long memberId) {
         RefreshToken refresh = Optional.ofNullable(refreshTokenRepository.findByToken(refreshToken))
                 .orElseThrow(() -> new EscapeException(ErrorCode.REFRESH_TOKEN_NOT_FOUND, refreshToken));
 
-        if (!refresh.getUserId().equals(userId)) {
+        if (!refresh.getMemberId().equals(memberId)) {
             throw new EscapeException(ErrorCode.TOKEN_USER_MISMATCH);
         }
 
@@ -115,9 +115,20 @@ public class AuthService {
         // TODO 로깅 처리
     }
 
-    private TokenResponse createToken(User user) {
-        String newAccessToken = jwtTokenProvider.createAccessTokenByUser(user.getEmail());
-        String newRefreshToken = jwtTokenProvider.createRefreshTokenByUser(user.getEmail(), user.getId());
+    private TokenResponse createToken(Member member) {
+        final String email = member.getEmail();
+        final Long memberId = member.getId();
+        String newAccessToken;
+        String newRefreshToken;
+
+        if (member.getRole() == MemberRole.USER) {
+            newAccessToken = jwtTokenProvider.createAccessTokenByUser(email);
+            newRefreshToken = jwtTokenProvider.createRefreshTokenByUser(email, memberId);
+        } else {
+            newAccessToken = jwtTokenProvider.createAccessTokenByAdmin(email);
+            newRefreshToken = jwtTokenProvider.createRefreshTokenByAdmin(email, memberId);
+        }
+
         return TokenResponse.of(newAccessToken, newRefreshToken);
     }
 
