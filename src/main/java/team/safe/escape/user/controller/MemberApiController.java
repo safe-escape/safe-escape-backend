@@ -7,19 +7,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import team.safe.escape.common.response.ApiResponse;
-import team.safe.escape.user.dto.response.UserResponseDto;
-import team.safe.escape.user.service.UserService;
+import team.safe.escape.user.dto.response.MemberResponseDto;
+import team.safe.escape.user.service.MemberService;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/users")
-public class UserApiController {
+@RequestMapping("/api/members")
+public class MemberApiController {
 
-    private final UserService userService;
+    private final MemberService memberService;
 
     @GetMapping("/me")
-    public ApiResponse<UserResponseDto> getUser(@AuthenticationPrincipal UserDetails userDetails) {
-        UserResponseDto response = userService.getUser(userDetails.getUsername());
+    public ApiResponse<MemberResponseDto> getUser(@AuthenticationPrincipal UserDetails userDetails) {
+        MemberResponseDto response = memberService.getUser(userDetails.getUsername());
         return ApiResponse.success(response);
     }
 

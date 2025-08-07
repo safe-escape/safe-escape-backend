@@ -17,7 +17,7 @@ import team.safe.escape.user.dto.request.LoginRequest;
 import team.safe.escape.user.dto.request.RefreshRequest;
 import team.safe.escape.user.dto.response.LoginResponse;
 import team.safe.escape.user.dto.response.TokenResponse;
-import team.safe.escape.user.enumeration.UserRole;
+import team.safe.escape.user.enumeration.MemberRole;
 import team.safe.escape.user.service.AuthService;
 
 @RestController
@@ -48,8 +48,8 @@ public class AuthAdminController {
                                               HttpServletRequest servletRequest,
                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
         String accessToken = authService.resolveToken(servletRequest);
-        Long userId = userDetails.getUserId();
-        UserRole role = userDetails.getUserRole();
+        Long userId = userDetails.getMemberId();
+        MemberRole role = userDetails.getUserRole();
         TokenResponse response = authService.refreshToken(request.getRefreshToken(), accessToken, userId, role);
         return ApiResponse.success(response);
     }

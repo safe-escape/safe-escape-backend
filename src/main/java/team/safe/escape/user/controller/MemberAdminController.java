@@ -7,19 +7,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import team.safe.escape.common.response.ApiResponse;
 import team.safe.escape.config.jwt.CustomUserDetails;
-import team.safe.escape.user.dto.response.UserResponseDto;
-import team.safe.escape.user.service.UserService;
+import team.safe.escape.user.dto.response.MemberResponseDto;
+import team.safe.escape.user.service.MemberService;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/users")
-public class UserAdminController {
+@RequestMapping("/admin/members")
+public class MemberAdminController {
 
-    private final UserService userService;
+    private final MemberService memberService;
 
     @GetMapping("/me")
-    public ApiResponse<UserResponseDto> getUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        UserResponseDto response = userService.getAdminUser(userDetails.getUsername());
+    public ApiResponse<MemberResponseDto> getUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        MemberResponseDto response = memberService.getAdminUser(userDetails.getUsername());
         return ApiResponse.success(response);
     }
 

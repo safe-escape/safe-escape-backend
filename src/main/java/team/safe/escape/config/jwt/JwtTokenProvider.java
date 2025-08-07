@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import team.safe.escape.user.entity.User;
+import team.safe.escape.user.entity.Member;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -82,8 +82,8 @@ public class JwtTokenProvider {
 
     public Authentication getAuthentication(String token) {
         String username = getUsername(token);
-        User user = jwtTokenService.getAuthenticationUser(username);
-        CustomUserDetails userDetails = new CustomUserDetails(user);
+        Member member = jwtTokenService.getAuthenticationUser(username);
+        CustomUserDetails userDetails = new CustomUserDetails(member);
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 
