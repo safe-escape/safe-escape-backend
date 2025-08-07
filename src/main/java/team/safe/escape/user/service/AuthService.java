@@ -10,10 +10,13 @@ import team.safe.escape.exception.EscapeException;
 import team.safe.escape.user.dto.response.LoginResponse;
 import team.safe.escape.user.dto.response.TokenResponse;
 import team.safe.escape.user.dto.response.UserResponseDto;
+import team.safe.escape.user.entity.RefreshToken;
 import team.safe.escape.user.entity.User;
 import team.safe.escape.user.enumeration.UserRole;
+import team.safe.escape.user.repository.RefreshTokenRepository;
 import team.safe.escape.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -22,6 +25,7 @@ import java.util.Optional;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
     public String resolveToken(HttpServletRequest request) {
@@ -29,9 +33,7 @@ public class AuthService {
     }
 
     public void logout(String token) {
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            jwtTokenProvider.blacklistToken(token);
-        }
+        blacklistAccessToken(token);
     }
 
     public TokenResponse register(String email, String name, String password) {
@@ -46,9 +48,7 @@ public class AuthService {
                 .role(UserRole.USER)
                 .build());
 
-        String accessToken = jwtTokenProvider.createAccessTokenByUser(email);
-        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email, user.getId());
-        return TokenResponse.of(accessToken, refreshToken);
+        return createToken(user);
     }
 
     public LoginResponse loginByUser(String email, String password) {
@@ -59,9 +59,7 @@ public class AuthService {
             throw new EscapeException(ErrorCode.PASSWORD_MISMATCH);
         }
 
-        String accessToken = jwtTokenProvider.createAccessTokenByUser(email);
-        String refreshToken = jwtTokenProvider.createRefreshTokenByUser(email, user.getId());
-        return LoginResponse.of(accessToken, refreshToken, UserResponseDto.ofUser(user));
+        return LoginResponse.of(createToken(user), UserResponseDto.ofUser(user));
     }
 
     public LoginResponse loginByAdmin(String email, String password) {
@@ -72,8 +70,55 @@ public class AuthService {
             throw new EscapeException(ErrorCode.PASSWORD_MISMATCH);
         }
 
-        String accessToken = jwtTokenProvider.createAccessTokenByAdmin(email);
-        String refreshToken = jwtTokenProvider.createRefreshTokenByAdmin(email, user.getId());
-        return LoginResponse.of(accessToken, refreshToken, UserResponseDto.ofUser(user));
+        return LoginResponse.of(createToken(user), UserResponseDto.ofUser(user));
     }
+
+    public TokenResponse refreshToken(String refreshToken, String accessToken, Long userId, UserRole role) {
+        User user = validUserByIdAndReturn(userId, role);
+        RefreshToken refresh = validateUserByIdAndReturn(refreshToken, userId);
+        blacklistAccessToken(accessToken);
+        refresh.expired();
+        return createToken(user);
+    }
+
+    private User validUserByIdAndReturn(Long userId, UserRole role) {
+        User user = null;
+        if (role == UserRole.USER) {
+            user = userRepository.findUserById(userId);
+        } else if (role == UserRole.ADMIN) {
+            user = userRepository.findAdminById(userId);
+        }
+        if (user == null) {
+            throw new EscapeException(ErrorCode.USER_NOT_FOUND, userId);
+        }
+        return user;
+    }
+
+    private RefreshToken validateUserByIdAndReturn(String refreshToken, Long userId) {
+        RefreshToken refresh = Optional.ofNullable(refreshTokenRepository.findByToken(refreshToken))
+                .orElseThrow(() -> new EscapeException(ErrorCode.REFRESH_TOKEN_NOT_FOUND, refreshToken));
+
+        if (!refresh.getUserId().equals(userId)) {
+            throw new EscapeException(ErrorCode.TOKEN_USER_MISMATCH);
+        }
+
+        if (refresh.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new EscapeException(ErrorCode.EXPIRED_REFRESH_TOKEN);
+        }
+        return refresh;
+    }
+
+    private void blacklistAccessToken(String accessToken) {
+        if ((accessToken != null) && jwtTokenProvider.validateToken(accessToken)) {
+            jwtTokenProvider.blacklistToken(accessToken);
+        }
+        // TODO 로깅 처리
+    }
+
+    private TokenResponse createToken(User user) {
+        String newAccessToken = jwtTokenProvider.createAccessTokenByUser(user.getEmail());
+        String newRefreshToken = jwtTokenProvider.createRefreshTokenByUser(user.getEmail(), user.getId());
+        return TokenResponse.of(newAccessToken, newRefreshToken);
+    }
+
 }

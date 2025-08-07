@@ -30,4 +30,20 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                 .fetchFirst();
     }
 
+    @Override
+    public User findUserById(Long id) {
+        return queryFactory
+                .selectFrom(user)
+                .where(user.id.eq(id).and(user.role.eq(UserRole.USER)))
+                .fetchFirst();
+    }
+
+    @Override
+    public User findAdminById(Long id) {
+        return queryFactory
+                .selectFrom(user)
+                .where(user.id.eq(id).and(user.role.eq(UserRole.ADMIN)))
+                .fetchFirst();
+    }
+
 }

@@ -8,6 +8,14 @@ import lombok.NoArgsConstructor;
 public class LoginResponse extends TokenResponse {
     private UserResponseDto user;
 
+    public static LoginResponse of(TokenResponse tokenResponse, UserResponseDto user) {
+        LoginResponse instance = new LoginResponse();
+        instance.accessToken = tokenResponse.getAccessToken();
+        instance.refreshToken = tokenResponse.getRefreshToken();
+        instance.user = user;
+        return instance;
+    }
+
     public static LoginResponse of(String accessToken, String refreshToken, UserResponseDto user) {
         LoginResponse instance = new LoginResponse();
         instance.accessToken = accessToken;

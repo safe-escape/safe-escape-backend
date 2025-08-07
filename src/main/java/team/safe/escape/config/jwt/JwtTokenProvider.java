@@ -115,7 +115,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    private String getUsername(String token) {
+    public String getUsername(String token) {
         return parseClaims(token)
                 .getSubject();
     }
