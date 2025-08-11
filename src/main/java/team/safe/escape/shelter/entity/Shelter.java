@@ -1,12 +1,16 @@
 package team.safe.escape.shelter.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.*;
 import team.safe.escape.common.entity.BaseTimeEntity;
+import team.safe.escape.shelter.dto.ShelterData;
 
 @Entity
 @Table
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Shelter extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,5 +28,14 @@ public class Shelter extends BaseTimeEntity {
 
     @Column(nullable = false)
     private double longitude;
+
+    public static Shelter ofCreateByShelterData(ShelterData data) {
+        return Shelter.builder()
+                .name(data.getFacilityName())
+                .address(data.getAddress())
+                .latitude(data.getLatitude())
+                .longitude(data.getLongitude())
+                .build();
+    }
 
 }
