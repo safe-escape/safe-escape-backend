@@ -26,4 +26,11 @@ public class ShelterController {
         shelterService.deleteBookmark(userDetails.getMemberId(), shelterId);
         return ApiResponse.success();
     }
+
+    @PostMapping("/load")
+    public ApiResponse<Void> saveShelter() {
+        shelterService.saveShelter();
+        return ApiResponse.success();
+    }
+
 }

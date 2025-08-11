@@ -1,10 +1,12 @@
 package team.safe.escape.shelter.service;
 
+import io.jsonwebtoken.lang.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
+import team.safe.escape.shelter.dto.ShelterData;
 import team.safe.escape.shelter.dto.response.ShelterResponse;
 import team.safe.escape.shelter.entity.Shelter;
 import team.safe.escape.shelter.entity.ShelterBookmark;
@@ -12,6 +14,7 @@ import team.safe.escape.shelter.entity.ShelterBookmarkId;
 import team.safe.escape.shelter.repository.ShelterBookmarkRepository;
 import team.safe.escape.shelter.repository.ShelterRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,6 +24,7 @@ public class ShelterService {
 
     private final ShelterRepository shelterRepository;
     private final ShelterBookmarkRepository shelterBookmarkRepository;
+    private final ShelterDataLoader shelterDataLoader;
 
     public ShelterResponse bookmarkShelter(Long memberId, Long shelterId) {
         Shelter shelter = getShelterById(shelterId);
@@ -34,6 +38,22 @@ public class ShelterService {
     public void deleteBookmark(Long memberId, Long shelterId) {
         ShelterBookmark shelterBookmark = getShelterBookmarkOrThrow(memberId, shelterId);
         shelterBookmarkRepository.delete(shelterBookmark);
+    }
+
+    public void saveShelter() {
+        long countShelters = shelterRepository.countShelters();
+        if (countShelters > 0) {
+            throw new EscapeException(ErrorCode.ALREADY_SAVE_SHELTER);
+        }
+
+        List<ShelterData> shelterDataList = shelterDataLoader.loadShelterData();
+        if (Collections.isEmpty(shelterDataList)) {
+            return;
+        }
+        List<Shelter> shelterList = shelterDataList.stream()
+                .map(Shelter::ofCreateByShelterData)
+                .toList();
+        shelterRepository.saveAll(shelterList);
     }
 
     private Shelter getShelterById(Long shelterId) {

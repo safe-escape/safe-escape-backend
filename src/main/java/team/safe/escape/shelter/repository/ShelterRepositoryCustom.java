@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface ShelterRepositoryCustom {
     List<Shelter> findByShelterIds(List<Long> shelterIds);
+
+    long countShelters();
 }

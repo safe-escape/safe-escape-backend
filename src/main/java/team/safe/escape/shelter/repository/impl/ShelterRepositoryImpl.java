@@ -22,4 +22,13 @@ public class ShelterRepositoryImpl implements ShelterRepositoryCustom {
                 .where(shelter.id.in(shelterIds))
                 .fetch();
     }
+
+    @Override
+    public long countShelters() {
+        Long count = queryFactory
+                .select(shelter.count())
+                .from(shelter)
+                .fetchOne();
+        return count != null ? count : 0L;
+    }
 }
