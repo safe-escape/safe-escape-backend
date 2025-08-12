@@ -1,4 +1,4 @@
-package team.safe.escape.exit.entity;
+package team.safe.escape.crowded.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +10,7 @@ import team.safe.escape.common.entity.BaseTimeEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class EmergencyExit extends BaseTimeEntity {
+public class CrowdedArea extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
