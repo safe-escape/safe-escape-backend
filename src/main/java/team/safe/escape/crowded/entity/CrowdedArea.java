@@ -2,25 +2,26 @@ package team.safe.escape.crowded.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import team.safe.escape.common.entity.BaseTimeEntity;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Builder
-public class CrowdedArea extends BaseTimeEntity {
+public class CrowdedArea {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(nullable = false)
-    private double latitude;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
-    @Column(nullable = false)
-    private double longitude;
-
+    public static CrowdedArea ofCreate() {
+        return new CrowdedArea();
+    }
 }
