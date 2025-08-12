@@ -10,7 +10,7 @@ import team.safe.escape.common.entity.BaseTimeEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Exit extends BaseTimeEntity {
+public class EmergencyExit extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
     EXIT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 비상구입니다."),
+    NEAR_EXIT_NOT_FOUND(HttpStatus.NOT_FOUND, "가까운 비상구를 찾을 수 없습니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."),
     SHELTER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 대피소입니다."),
     SHELTER_BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "찜한 대피소가 존재하지 않습니다."),
