@@ -11,6 +11,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 public class CrowdedExitResponse {
+    private long crowdedAreaId;
     private List<LocationDto> crowdedLocations;
     private List<LocationDto> exitLocations;
 

@@ -28,7 +28,7 @@ public class CrowdedService {
     private final CrowdedAreaExitRepository crowdedAreaExitRepository;
     private final EmergencyExitRepository emergencyExitRepository;
 
-    public Long deleteCrowded(Long crowdedId) {
+    public Long deleteCrowdedArea(Long crowdedId) {
         CrowdedArea crowdedArea = crowdedAreaRepository.findById(crowdedId)
                 .orElseThrow(() -> new EscapeException(ErrorCode.CROWDED_AREA_NOT_FOUND));
 
@@ -48,7 +48,7 @@ public class CrowdedService {
                 .toList();
     }
 
-    public CrowdedExitResponse createCrowded(List<LocationDto> crowdedLocations, List<LocationDto> exitLocations) {
+    public CrowdedExitResponse createCrowdedArea(List<LocationDto> crowdedLocations, List<LocationDto> exitLocations) {
         CrowdedArea crowdedArea = saveCrowdedArea();
 
         saveCrowdedAreaLoc(crowdedLocations, crowdedArea);
@@ -56,6 +56,7 @@ public class CrowdedService {
         saveCrowdedAreaExit(savedEmergencyExitList, crowdedArea);
 
         return CrowdedExitResponse.builder()
+                .crowdedAreaId(crowdedArea.getId())
                 .crowdedLocations(crowdedLocations)
                 .exitLocations(exitLocations)
                 .build();

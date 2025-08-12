@@ -9,22 +9,22 @@ import team.safe.escape.crowded.dto.response.CrowdedExitResponse;
 import team.safe.escape.crowded.service.CrowdedService;
 
 @RestController
-@RequestMapping("/admin/crowded")
+@RequestMapping("/admin/crowded-area")
 @RequiredArgsConstructor
 public class CrowdedAdminController {
 
     private final CrowdedService crowdedService;
 
     @PostMapping
-    public ApiResponse<CrowdedExitResponse> createCrowded(@Valid @RequestBody CreateCrowdedRequest request) {
+    public ApiResponse<CrowdedExitResponse> createCrowdedArea(@Valid @RequestBody CreateCrowdedRequest request) {
         request.valid();
-        CrowdedExitResponse crowdedExit = crowdedService.createCrowded(request.toCrowdedLocationDtoList(), request.toExitLocationDtoList());
+        CrowdedExitResponse crowdedExit = crowdedService.createCrowdedArea(request.toCrowdedLocationDtoList(), request.toExitLocationDtoList());
         return ApiResponse.success(crowdedExit);
     }
 
-    @DeleteMapping("/{crowdedId}")
-    public ApiResponse<Long> deleteCrowded(@PathVariable Long crowdedId) {
-        return ApiResponse.success(crowdedService.deleteCrowded(crowdedId));
+    @DeleteMapping("/{crowdedAreaId}")
+    public ApiResponse<Long> deleteCrowdedArea(@PathVariable Long crowdedAreaId) {
+        return ApiResponse.success(crowdedService.deleteCrowdedArea(crowdedAreaId));
     }
 
 
