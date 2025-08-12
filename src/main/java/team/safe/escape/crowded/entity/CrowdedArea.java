@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table
@@ -17,6 +18,12 @@ public class CrowdedArea {
     @Column(nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @OneToMany(mappedBy = "crowdedArea", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<CrowdedAreaExit> crowdedAreaExitList;
+
+    @OneToMany(mappedBy = "crowdedArea", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<CrowdedAreaLoc> crowdedAreaLocList;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
