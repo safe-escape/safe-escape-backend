@@ -6,7 +6,8 @@ import org.gavaghan.geodesy.GeodeticCalculator;
 import org.gavaghan.geodesy.GlobalCoordinates;
 
 public abstract class GeoUtils {
-    private GeoUtils() { }
+    private GeoUtils() {
+    }
 
     private static final GeodeticCalculator geoCalc = new GeodeticCalculator();
 
@@ -17,5 +18,17 @@ public abstract class GeoUtils {
         return geoCalc
                 .calculateGeodeticCurve(Ellipsoid.WGS84, source, target)
                 .getEllipsoidalDistance();
+    }
+
+    public static boolean isValidLocation(double latitude, double longitude) {
+        return isValidLatitude(latitude) && isValidLongitude(longitude);
+    }
+
+    public static boolean isValidLatitude(double latitude) {
+        return latitude >= -90 && latitude <= 90;
+    }
+
+    public static boolean isValidLongitude(double longitude) {
+        return longitude >= -180 && longitude <= 180;
     }
 }
