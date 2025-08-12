@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import team.safe.escape.common.entity.BaseTimeEntity;
-import team.safe.escape.user.enumeration.UserRole;
+import team.safe.escape.user.enumeration.MemberRole;
 
 @Entity
 @Table
@@ -14,7 +14,7 @@ import team.safe.escape.user.enumeration.UserRole;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class User extends BaseTimeEntity {
+public class Member extends BaseTimeEntity {
     @Id
     @Column(nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,5 +30,5 @@ public class User extends BaseTimeEntity {
     private String password;
 
     @Enumerated(value = EnumType.STRING)
-    private UserRole role;
+    private MemberRole role;
 }

@@ -3,35 +3,35 @@ package team.safe.escape.config.jwt;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import team.safe.escape.user.entity.User;
-import team.safe.escape.user.enumeration.UserRole;
+import team.safe.escape.user.entity.Member;
+import team.safe.escape.user.enumeration.MemberRole;
 
 import java.util.Collection;
 import java.util.List;
 
-public record CustomUserDetails(User user) implements UserDetails {
+public record CustomUserDetails(Member member) implements UserDetails {
 
-    public Long getUserId() {
-        return user.getId();
+    public Long getMemberId() {
+        return member.getId();
     }
 
-    public UserRole getUserRole() {
-        return user.getRole();
+    public MemberRole getUserRole() {
+        return member.getRole();
     }
 
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return member.getEmail();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(user.getRole().name()));
+        return List.of(new SimpleGrantedAuthority(member.getRole().name()));
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return member.getPassword();
     }
 
     @Override

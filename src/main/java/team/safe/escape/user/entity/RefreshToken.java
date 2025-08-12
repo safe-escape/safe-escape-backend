@@ -23,7 +23,7 @@ public class RefreshToken extends BaseTimeEntity {
     private Long id;
 
     @Column
-    private Long userId;
+    private Long memberId;
 
     @Column
     private String token;

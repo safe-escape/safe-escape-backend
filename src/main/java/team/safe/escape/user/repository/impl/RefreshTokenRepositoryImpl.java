@@ -16,10 +16,10 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepositoryCustom 
 
 
     @Override
-    public void deleteByUserId(Long userId) {
+    public void deleteByMemberId(Long memberId) {
         queryFactory
                 .delete(refreshToken)
-                .where(refreshToken.userId.eq(userId))
+                .where(refreshToken.memberId.eq(memberId))
                 .execute();
     }
 

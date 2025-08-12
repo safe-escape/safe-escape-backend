@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
+import team.safe.escape.user.entity.Member;
 import team.safe.escape.user.entity.RefreshToken;
-import team.safe.escape.user.entity.User;
+import team.safe.escape.user.repository.MemberRepository;
 import team.safe.escape.user.repository.RefreshTokenRepository;
-import team.safe.escape.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -19,22 +19,22 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 public class JwtTokenService {
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private static final String BLACKLIST_PREFIX = "blacklist:";
 
     @Transactional
-    public User getAuthenticationUser(String email) {
-        return Optional.ofNullable(userRepository.findByEmail(email))
+    public Member getAuthenticationUser(String email) {
+        return Optional.ofNullable(memberRepository.findByEmail(email))
                 .orElseThrow(() -> new EscapeException(ErrorCode.USER_NOT_FOUND, email));
     }
 
     @Transactional
-    public void refreshToken(Long userId, String refreshToken, LocalDateTime expiresAt) {
-        refreshTokenRepository.deleteByUserId(userId);
+    public void refreshToken(Long memberId, String refreshToken, LocalDateTime expiresAt) {
+        refreshTokenRepository.deleteByMemberId(memberId);
         refreshTokenRepository.save(RefreshToken.builder()
-                .userId(userId)
+                .memberId(memberId)
                 .token(refreshToken)
                 .expiresAt(expiresAt)
                 .build());
