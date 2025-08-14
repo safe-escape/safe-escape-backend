@@ -3,9 +3,11 @@ package team.safe.escape.population.repository.impl;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import team.safe.escape.population.entity.Population;
 import team.safe.escape.population.repository.PopulationRepositoryCustom;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static team.safe.escape.population.entity.QPopulation.population;
 
@@ -23,5 +25,13 @@ public class PopulationRepositoryImpl implements PopulationRepositoryCustom {
                 .where(population.dateTime.goe(startDate)
                         .and(population.dateTime.lt(endDate)))
                 .fetchFirst() != null;
+    }
+
+    @Override
+    public List<Population> findByDateTime(LocalDateTime dateTime) {
+        return queryFactory
+                .selectFrom(population)
+                .where(population.dateTime.eq(dateTime))
+                .fetch();
     }
 }

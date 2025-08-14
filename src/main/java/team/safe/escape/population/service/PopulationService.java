@@ -4,17 +4,23 @@ import io.jsonwebtoken.lang.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import team.safe.escape.common.util.GeoUtils;
 import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
 import team.safe.escape.population.dto.ForecastData;
 import team.safe.escape.population.dto.PopulationAreaData;
+import team.safe.escape.population.dto.response.PopulationNearbyDto;
 import team.safe.escape.population.entity.Population;
 import team.safe.escape.population.entity.PopulationArea;
 import team.safe.escape.population.repository.PopulationAreaRepository;
 import team.safe.escape.population.repository.PopulationRepository;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +30,31 @@ public class PopulationService {
     private final PopulationAreaRepository populationAreaRepository;
     private final PopulationRepository populationRepository;
     private final PopulationFetcher populationFetcher;
+
+    public List<PopulationNearbyDto> getPopulationNearby(double latitude, double longitude, int size) {
+        LocalDateTime dateTime = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+        List<Population> populationList = populationRepository.findByDateTime(dateTime);
+        Map<String, PopulationArea> areaMap = populationAreaRepository.findAll().stream()
+                .collect(Collectors.toMap(PopulationArea::getAreaCode, Function.identity()));
+
+        List<Population> sortedPopulationList = populationList
+                .stream()
+                .sorted(Comparator.comparingDouble(p2 -> GeoUtils.distanceInMeters(areaMap.get(p2.getAreaCode()).getLatitude(), areaMap.get(p2.getAreaCode()).getLongitude(), latitude, longitude)))
+                .toList();
+
+        return sortedPopulationList.stream()
+                .map(p -> {
+                    PopulationArea populationArea = areaMap.get(p.getAreaCode());
+                    return PopulationNearbyDto.builder()
+                            .latitude(populationArea.getLatitude())
+                            .longitude(populationArea.getLongitude())
+                            .name(populationArea.getAreaName())
+                            .level(p.getLevel())
+                            .build();
+                })
+                .limit(size)
+                .toList();
+    }
 
     public void savePopulationArea() {
         long countPopulation = populationAreaRepository.countPopulationArea();
