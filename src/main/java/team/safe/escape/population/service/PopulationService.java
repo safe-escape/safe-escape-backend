@@ -9,6 +9,7 @@ import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
 import team.safe.escape.population.dto.ForecastData;
 import team.safe.escape.population.dto.PopulationAreaData;
+import team.safe.escape.population.dto.PopulationDto;
 import team.safe.escape.population.dto.response.PopulationNearbyDto;
 import team.safe.escape.population.entity.Population;
 import team.safe.escape.population.entity.PopulationArea;
@@ -93,6 +94,27 @@ public class PopulationService {
 
         populationRepository.saveAll(populationList);
         return populationList;
+    }
+
+    public List<PopulationDto> getPopulationResponseByLocation(double[][] locations) {
+        Map<String, PopulationArea> areaMap = populationAreaRepository.findAll().stream()
+                .filter(c -> GeoUtils.isPointInsidePolygon(c.getLongitude(), c.getLatitude(), locations))
+                .collect(Collectors.toMap(PopulationArea::getAreaCode, Function.identity()));
+
+        LocalDateTime dateTime = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+        return populationRepository.findByDateTime(dateTime).stream()
+                .filter(p -> areaMap.containsKey(p.getAreaCode()))
+                .map(a-> PopulationDto.builder()
+                        .level(a.getLevel())
+                        .longitude(areaMap.get(a.getAreaCode()).getLongitude())
+                        .latitude(areaMap.get(a.getAreaCode()).getLatitude())
+                        .build()
+                ).toList();
+    }
+
+    public List<PopulationNearbyDto> getPopulationNearby(double[][] locations, int size) {
+        double[] polygonCenter = GeoUtils.getPolygonCenter(locations);
+        return getPopulationNearby(polygonCenter[0], polygonCenter[1], size);
     }
 
     private boolean isExistTodayData() {

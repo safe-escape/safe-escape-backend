@@ -1,5 +1,6 @@
 package team.safe.escape.shelter.repository.impl;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -39,7 +40,11 @@ public class ShelterBookmarkRepositoryImpl implements ShelterBookmarkRepositoryC
     public List<ShelterBookmark> findByMemberId(Long memberId) {
         return queryFactory
                 .selectFrom(shelterBookmark)
-                .where(shelterBookmark.id.memberId.eq(memberId))
+                .where(memberIdEq(memberId))
                 .fetch();
+    }
+
+    private BooleanExpression memberIdEq(Long memberId) {
+        return memberId != null ? shelterBookmark.id.memberId.eq(memberId) : null;
     }
 }

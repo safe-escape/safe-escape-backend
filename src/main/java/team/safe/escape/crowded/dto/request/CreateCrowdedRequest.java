@@ -16,10 +16,10 @@ public class CreateCrowdedRequest {
     private static final int MINIMUM_LOCATIONS = 2;
 
     @NotNull(message = "혼잡지역은 필수 항목입니다.")
-    private List<CreateLocationRequest> crowdedLocationList;
+    private List<LocationRequest> crowdedLocationList;
 
     @NotNull(message = "비상구는 필수 항목입니다.")
-    private List<CreateLocationRequest> exitLocationList;
+    private List<LocationRequest> exitLocationList;
 
     public void valid() {
         validateMinimumCount(exitLocationList, ErrorCode.EXIT_MINIMUM_REQUIRED);
@@ -36,7 +36,7 @@ public class CreateCrowdedRequest {
         return toLocationDtoList(this.exitLocationList);
     }
 
-    private List<LocationDto> toLocationDtoList(List<CreateLocationRequest> locationRequestList) {
+    private List<LocationDto> toLocationDtoList(List<LocationRequest> locationRequestList) {
         return locationRequestList.stream()
                 .map(loc -> LocationDto.ofCreate(loc.getLatitude(), loc.getLongitude()))
                 .toList();
@@ -48,7 +48,7 @@ public class CreateCrowdedRequest {
         }
     }
 
-    private void validateLocations(List<CreateLocationRequest> locationList) {
+    private void validateLocations(List<LocationRequest> locationList) {
         boolean isInvalid = locationList.stream()
                 .anyMatch(loc -> !GeoUtils.isValidLocation(loc.getLatitude(), loc.getLongitude()));
         if (isInvalid) {
