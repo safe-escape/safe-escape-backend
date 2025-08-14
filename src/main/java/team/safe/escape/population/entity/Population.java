@@ -32,14 +32,15 @@ public class Population extends BaseTimeEntity {
     private String areaCode;
 
     @Column
-    private String level;
+    @Enumerated(value = EnumType.STRING)
+    private PopulationLevel level;
 
     public static Population ofCreateByApiResponse(ForecastData forecastData, CityData cityData) {
         return Population.builder()
                 .dateTime(LocalDateTime.parse(forecastData.getFcstTime(), DateTimeUtils.YYYY_MM_DD_HH_MM))
                 .areaName(cityData.getAreaNm())
                 .areaCode(cityData.getAreaCd())
-                .level(forecastData.getFcstCongestLvl())
+                .level(PopulationLevel.fromLevel(forecastData.getFcstCongestLvl()))
                 .build();
     }
 
