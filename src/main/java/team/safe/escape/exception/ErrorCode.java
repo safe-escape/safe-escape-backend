@@ -20,6 +20,8 @@ public enum ErrorCode {
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 refresh 토큰입니다."),
     EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 refreshToken 입니다."),
     ALREADY_SAVE_SHELTER(HttpStatus.CONFLICT, "이미 대피소를 저장했습니다."),
+    ALREADY_SAVE_POPULATION_AREA(HttpStatus.CONFLICT, "이미 인구 지역을 저장했습니다."),
+    ALREADY_SAVE_POPULATION(HttpStatus.CONFLICT, "이미 오늘의 인구 정보를 저장했습니다."),
     CSV_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "CSV 파일 처리 중 오류가 발생했습니다."),
     EXIT_MINIMUM_REQUIRED(HttpStatus.BAD_REQUEST, "비상구는 2개 이상부터 지정할 수 있습니다."),
     CROWDED_MINIMUM_REQUIRED(HttpStatus.BAD_REQUEST, "혼잡지역은 좌표 2개 이상부터 지정할 수 있습니다."),
