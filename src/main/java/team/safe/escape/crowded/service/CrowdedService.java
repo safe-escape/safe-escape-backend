@@ -3,6 +3,8 @@ package team.safe.escape.crowded.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import team.safe.escape.common.util.GeoUtils;
+import team.safe.escape.crowded.dto.CrowdedAreaDto;
 import team.safe.escape.crowded.dto.LocationDto;
 import team.safe.escape.crowded.dto.response.CrowdedExitResponse;
 import team.safe.escape.crowded.entity.CrowdedArea;
@@ -16,7 +18,10 @@ import team.safe.escape.exception.EscapeException;
 import team.safe.escape.exit.entity.EmergencyExit;
 import team.safe.escape.exit.repository.EmergencyExitRepository;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +65,26 @@ public class CrowdedService {
                 .crowdedLocations(crowdedLocations)
                 .exitLocations(exitLocations)
                 .build();
+    }
+
+    public List<CrowdedAreaDto> getCrowdedAreaList(double[][] locations) {
+        List<CrowdedAreaLoc> crowdedAreaLocList = crowdedAreaLocRepository.findAll();
+        Set<Long> crowdedIdList = crowdedAreaLocList
+                .stream()
+                .filter(c -> GeoUtils.isPointInsidePolygon(c.getLongitude(), c.getLatitude(), locations))
+                .map(c -> c.getCrowdedArea().getId()).collect(Collectors.toSet());
+
+        List<CrowdedAreaDto> crowdedAreaDtoList = new ArrayList<>();
+        for (CrowdedArea crowdedArea : crowdedAreaRepository.findAllById(crowdedIdList)) {
+            crowdedAreaDtoList.add(CrowdedAreaDto.builder()
+                    .id(crowdedArea.getId())
+                    .locationList(crowdedArea.getCrowdedAreaLocList().stream().map(c -> LocationDto.builder()
+                            .longitude(c.getLongitude()).latitude(c.getLatitude()).build()).toList())
+                    .exitList(crowdedArea.getCrowdedAreaExitList().stream().map(c -> LocationDto.builder()
+                            .longitude(c.getExit().getLongitude()).latitude(c.getExit().getLatitude()).build()).toList())
+                    .build());
+        }
+        return crowdedAreaDtoList;
     }
 
     private CrowdedArea saveCrowdedArea() {

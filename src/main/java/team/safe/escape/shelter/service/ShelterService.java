@@ -4,10 +4,12 @@ import io.jsonwebtoken.lang.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import team.safe.escape.common.util.GeoUtils;
 import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
 import team.safe.escape.shelter.dto.ShelterData;
 import team.safe.escape.shelter.dto.response.ShelterResponse;
+import team.safe.escape.shelter.dto.response.ShelterWithBookmarkResponse;
 import team.safe.escape.shelter.entity.Shelter;
 import team.safe.escape.shelter.entity.ShelterBookmark;
 import team.safe.escape.shelter.entity.ShelterBookmarkId;
@@ -15,7 +17,10 @@ import team.safe.escape.shelter.repository.ShelterBookmarkRepository;
 import team.safe.escape.shelter.repository.ShelterRepository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -55,6 +60,25 @@ public class ShelterService {
                 .toList();
         shelterRepository.saveAll(shelterList);
     }
+
+    public List<ShelterResponse> getShelterResponseByLocation(double[][] locations) {
+        return shelterRepository.findAll()
+                .stream()
+                .filter(c -> GeoUtils.isPointInsidePolygon(c.getLongitude(), c.getLatitude(), locations))
+                .map(ShelterResponse::ofShelter)
+                .toList();
+    }
+
+    public List<ShelterWithBookmarkResponse> getShelterResponseWithBookmarkByLocation(double[][] locations, Long memberId) {
+        Map<Long, ShelterBookmark> shelterBookmarkMap = shelterBookmarkRepository.findByMemberId(memberId).stream()
+                .collect(Collectors.toMap(b -> b.getId().getShelterId(), Function.identity()));
+        return shelterRepository.findAll()
+                .stream()
+                .filter(c -> GeoUtils.isPointInsidePolygon(c.getLongitude(), c.getLatitude(), locations))
+                .map(c2 -> ShelterWithBookmarkResponse.ofShelter(c2, shelterBookmarkMap.containsKey(c2.getId())))
+                .toList();
+    }
+
 
     private Shelter getShelterById(Long shelterId) {
         return shelterRepository.findById(shelterId)

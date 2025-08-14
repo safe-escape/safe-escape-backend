@@ -5,13 +5,13 @@ import team.safe.escape.shelter.entity.Shelter;
 
 @Getter
 public class ShelterResponse {
-    private final Long id;
-    private final String name;
-    private final String address;
-    private final double latitude;
-    private final double longitude;
+    protected final Long id;
+    protected final String name;
+    protected final String address;
+    protected final double latitude;
+    protected final double longitude;
 
-    private ShelterResponse(Long id, String name, String address, double latitude, double longitude) {
+    protected ShelterResponse(Long id, String name, String address, double latitude, double longitude) {
         this.id = id;
         this.name = name;
         this.address = address;
