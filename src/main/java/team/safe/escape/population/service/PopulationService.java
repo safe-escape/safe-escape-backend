@@ -4,6 +4,7 @@ import io.jsonwebtoken.lang.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import team.safe.escape.common.util.DateTimeUtils;
 import team.safe.escape.common.util.GeoUtils;
 import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
@@ -33,7 +34,8 @@ public class PopulationService {
     private final PopulationFetcher populationFetcher;
 
     public List<PopulationNearbyDto> getPopulationNearby(double latitude, double longitude, int size) {
-        LocalDateTime dateTime = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+        check();
+        LocalDateTime dateTime = LocalDateTime.now().plusHours(1).withMinute(0).withSecond(0).withNano(0);
         List<Population> populationList = populationRepository.findByDateTime(dateTime);
         Map<String, PopulationArea> areaMap = populationAreaRepository.findAll().stream()
                 .collect(Collectors.toMap(PopulationArea::getAreaCode, Function.identity()));
@@ -97,11 +99,12 @@ public class PopulationService {
     }
 
     public List<PopulationDto> getPopulationResponseByLocation(double[][] locations) {
+        check();
         Map<String, PopulationArea> areaMap = populationAreaRepository.findAll().stream()
                 .filter(c -> GeoUtils.isPointInsidePolygon(c.getLongitude(), c.getLatitude(), locations))
                 .collect(Collectors.toMap(PopulationArea::getAreaCode, Function.identity()));
 
-        LocalDateTime dateTime = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime dateTime = LocalDateTime.now().plusHours(1).withMinute(0).withSecond(0).withNano(0);
         return populationRepository.findByDateTime(dateTime).stream()
                 .filter(p -> areaMap.containsKey(p.getAreaCode()))
                 .map(a-> PopulationDto.builder()
@@ -122,5 +125,26 @@ public class PopulationService {
         LocalDateTime startOfToday = now.withHour(0).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime endOfToday = now.withHour(23).withMinute(59).withSecond(59).withNano(999_999_999);
         return populationRepository.existsByDateRange(startOfToday, endOfToday);
+    }
+
+    private void check() {
+        LocalDateTime dateTime = LocalDateTime.now().plusHours(1).withMinute(0).withSecond(0).withNano(0);
+        List<Population> populationList = populationRepository.findByDateTime(dateTime);
+        if (Collections.isEmpty(populationList)) {
+            List<PopulationArea> populationAreas = populationAreaRepository.findAll();
+            populationRepository.saveAll(populationAreas.stream()
+                    .map(PopulationArea::getAreaCode)
+                    .map(populationFetcher::fetchAreaForecast)
+                    .filter(response -> response != null && response.getCityData() != null)
+                    .flatMap(response -> response.getCityData().stream())
+                    .flatMap(area -> area.getForecasts().stream()
+                            .filter(ForecastData::isValidForToday)
+                            .filter(a -> {
+                                LocalDateTime d = LocalDateTime.parse(a.getFcstTime(), DateTimeUtils.YYYY_MM_DD_HH_MM);
+                                return d.equals(LocalDateTime.now()) || d.isAfter(LocalDateTime.now());
+                            })
+                            .map(forecast -> Population.ofCreateByApiResponse(forecast, area)))
+                    .toList());
+        }
     }
 }
