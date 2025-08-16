@@ -62,8 +62,8 @@ public class CrowdedService {
 
         return CrowdedExitResponse.builder()
                 .crowdedAreaId(crowdedArea.getId())
-                .crowdedLocations(crowdedLocations)
-                .exitLocations(exitLocations)
+                .crowdedLocationList(crowdedLocations)
+                .exitLocationList(exitLocations)
                 .build();
     }
 
