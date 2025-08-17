@@ -13,6 +13,9 @@ public class CityData {
     @JsonProperty("AREA_CD")
     private String areaCd;
 
+    @JsonProperty("AREA_CONGEST_LVL")
+    private String areaCongestLvl;
+
     @JsonProperty("FCST_PPLTN")
     private List<ForecastData> forecasts;
 }

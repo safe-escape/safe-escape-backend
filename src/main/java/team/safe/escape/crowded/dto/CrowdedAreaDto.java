@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import team.safe.escape.exit.dto.EmergencyExitDto;
 
 import java.util.List;
 
@@ -14,5 +15,5 @@ import java.util.List;
 public class CrowdedAreaDto {
     private long id;
     private List<LocationDto> locationList;
-    private List<LocationDto> exitList;
+    private List<EmergencyExitDto> exitList;
 }
