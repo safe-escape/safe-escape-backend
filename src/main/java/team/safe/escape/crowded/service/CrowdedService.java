@@ -15,6 +15,7 @@ import team.safe.escape.crowded.repository.CrowdedAreaLocRepository;
 import team.safe.escape.crowded.repository.CrowdedAreaRepository;
 import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
+import team.safe.escape.exit.dto.EmergencyExitDto;
 import team.safe.escape.exit.entity.EmergencyExit;
 import team.safe.escape.exit.repository.EmergencyExitRepository;
 
@@ -62,8 +63,8 @@ public class CrowdedService {
 
         return CrowdedExitResponse.builder()
                 .crowdedAreaId(crowdedArea.getId())
-                .crowdedLocations(crowdedLocations)
-                .exitLocations(exitLocations)
+                .crowdedLocationList(crowdedLocations)
+                .exitLocationList(exitLocations)
                 .build();
     }
 
@@ -80,8 +81,7 @@ public class CrowdedService {
                     .id(crowdedArea.getId())
                     .locationList(crowdedArea.getCrowdedAreaLocList().stream().map(c -> LocationDto.builder()
                             .longitude(c.getLongitude()).latitude(c.getLatitude()).build()).toList())
-                    .exitList(crowdedArea.getCrowdedAreaExitList().stream().map(c -> LocationDto.builder()
-                            .longitude(c.getExit().getLongitude()).latitude(c.getExit().getLatitude()).build()).toList())
+                    .exitList(crowdedArea.getCrowdedAreaExitList().stream().map(c -> EmergencyExitDto.ofExit(c.getExit())).toList())
                     .build());
         }
         return crowdedAreaDtoList;

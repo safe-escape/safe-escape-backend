@@ -34,7 +34,7 @@ public class AuthApiController {
             throw new EscapeException(ErrorCode.INVALID_FORMAT_EMAIL, request.getEmail());
         }
 
-        TokenResponse response = authService.register(request.getEmail(), request.getName(), request.getPassword());
+        TokenResponse response = authService.register(request.getEmail(), request.getName(), request.getPassword(), MemberRole.USER);
         return ApiResponse.success(response);
     }
 

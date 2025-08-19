@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class CrowdedExitResponse {
     private long crowdedAreaId;
-    private List<LocationDto> crowdedLocations;
-    private List<LocationDto> exitLocations;
+    private List<LocationDto> crowdedLocationList;
+    private List<LocationDto> exitLocationList;
 
 }

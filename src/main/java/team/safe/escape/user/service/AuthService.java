@@ -36,7 +36,7 @@ public class AuthService {
         blacklistAccessToken(token);
     }
 
-    public TokenResponse register(String email, String name, String password) {
+    public TokenResponse register(String email, String name, String password, MemberRole role) {
         if (memberRepository.existsUserByEmail(email)) {
             throw new EscapeException(ErrorCode.EMAIL_ALREADY_REGISTERED, email);
         }
@@ -45,7 +45,7 @@ public class AuthService {
                 .name(name)
                 .email(email)
                 .password(password)
-                .role(MemberRole.USER)
+                .role(role)
                 .build());
 
         return createToken(member);

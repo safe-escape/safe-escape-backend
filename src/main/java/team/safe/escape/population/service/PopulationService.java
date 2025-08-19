@@ -4,15 +4,18 @@ import io.jsonwebtoken.lang.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import team.safe.escape.common.util.DateTimeUtils;
 import team.safe.escape.common.util.GeoUtils;
 import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
 import team.safe.escape.population.dto.ForecastData;
+import team.safe.escape.population.dto.PopulationApiResponse;
 import team.safe.escape.population.dto.PopulationAreaData;
 import team.safe.escape.population.dto.PopulationDto;
 import team.safe.escape.population.dto.response.PopulationNearbyDto;
 import team.safe.escape.population.entity.Population;
 import team.safe.escape.population.entity.PopulationArea;
+import team.safe.escape.population.entity.PopulationLevel;
 import team.safe.escape.population.repository.PopulationAreaRepository;
 import team.safe.escape.population.repository.PopulationRepository;
 
@@ -33,6 +36,7 @@ public class PopulationService {
     private final PopulationFetcher populationFetcher;
 
     public List<PopulationNearbyDto> getPopulationNearby(double latitude, double longitude, int size) {
+        check();
         LocalDateTime dateTime = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
         List<Population> populationList = populationRepository.findByDateTime(dateTime);
         Map<String, PopulationArea> areaMap = populationAreaRepository.findAll().stream()
@@ -97,6 +101,7 @@ public class PopulationService {
     }
 
     public List<PopulationDto> getPopulationResponseByLocation(double[][] locations) {
+        check();
         Map<String, PopulationArea> areaMap = populationAreaRepository.findAll().stream()
                 .filter(c -> GeoUtils.isPointInsidePolygon(c.getLongitude(), c.getLatitude(), locations))
                 .collect(Collectors.toMap(PopulationArea::getAreaCode, Function.identity()));
@@ -104,7 +109,7 @@ public class PopulationService {
         LocalDateTime dateTime = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
         return populationRepository.findByDateTime(dateTime).stream()
                 .filter(p -> areaMap.containsKey(p.getAreaCode()))
-                .map(a-> PopulationDto.builder()
+                .map(a -> PopulationDto.builder()
                         .level(a.getLevel())
                         .longitude(areaMap.get(a.getAreaCode()).getLongitude())
                         .latitude(areaMap.get(a.getAreaCode()).getLatitude())
@@ -123,4 +128,43 @@ public class PopulationService {
         LocalDateTime endOfToday = now.withHour(23).withMinute(59).withSecond(59).withNano(999_999_999);
         return populationRepository.existsByDateRange(startOfToday, endOfToday);
     }
+
+    private void check() {
+        LocalDateTime current = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+        if (!populationRepository.findByDateTime(current).isEmpty()) {
+            return;
+        }
+
+        List<PopulationArea> populationAreas = populationAreaRepository.findAll();
+        List<PopulationApiResponse> apiResponses = populationAreas.stream()
+                .map(PopulationArea::getAreaCode)
+                .map(populationFetcher::fetchAreaForecast)
+                .filter(response -> response != null && response.getCityData() != null)
+                .toList();
+
+        List<Population> forecastsToSave = apiResponses.stream()
+                .flatMap(response -> response.getCityData().stream())
+                .flatMap(area -> area.getForecasts().stream()
+                        .filter(ForecastData::isValidForToday)
+                        .filter(forecast -> {
+                            LocalDateTime fcstTime = LocalDateTime.parse(forecast.getFcstTime(), DateTimeUtils.YYYY_MM_DD_HH_MM);
+                            return !fcstTime.isBefore(LocalDateTime.now());
+                        })
+                        .map(forecast -> Population.ofCreateByApiResponse(forecast, area)))
+                .toList();
+        populationRepository.saveAll(forecastsToSave);
+
+        List<Population> firstCityToSave = apiResponses.stream()
+                .map(PopulationApiResponse::getCityData)
+                .map(List::getFirst)
+                .map(city -> Population.builder()
+                        .dateTime(current)
+                        .areaName(city.getAreaNm())
+                        .areaCode(city.getAreaCd())
+                        .level(PopulationLevel.fromLevel(city.getAreaCongestLvl()))
+                        .build())
+                .toList();
+        populationRepository.saveAll(firstCityToSave);
+    }
 }
+

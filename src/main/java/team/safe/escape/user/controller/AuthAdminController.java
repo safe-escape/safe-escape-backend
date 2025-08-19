@@ -15,6 +15,7 @@ import team.safe.escape.exception.ErrorCode;
 import team.safe.escape.exception.EscapeException;
 import team.safe.escape.user.dto.request.LoginRequest;
 import team.safe.escape.user.dto.request.RefreshRequest;
+import team.safe.escape.user.dto.request.RegisterRequest;
 import team.safe.escape.user.dto.response.LoginResponse;
 import team.safe.escape.user.dto.response.TokenResponse;
 import team.safe.escape.user.enumeration.MemberRole;
@@ -25,6 +26,16 @@ import team.safe.escape.user.service.AuthService;
 @RequiredArgsConstructor
 public class AuthAdminController {
     private final AuthService authService;
+
+    @PostMapping("/register")
+    public ApiResponse<TokenResponse> register(@Valid @RequestBody RegisterRequest request) {
+        if (EmailValidator.isInvalidEmail(request.getEmail())) {
+            throw new EscapeException(ErrorCode.INVALID_FORMAT_EMAIL, request.getEmail());
+        }
+
+        TokenResponse response = authService.register(request.getEmail(), request.getName(), request.getPassword(), MemberRole.ADMIN);
+        return ApiResponse.success(response);
+    }
 
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {

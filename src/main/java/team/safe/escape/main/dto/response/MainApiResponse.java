@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import team.safe.escape.crowded.dto.CrowdedAreaDto;
 import team.safe.escape.population.dto.PopulationDto;
+import team.safe.escape.population.dto.response.PopulationNearbyDto;
 import team.safe.escape.shelter.dto.response.ShelterWithBookmarkResponse;
 
 import java.util.List;
@@ -19,6 +20,5 @@ public class MainApiResponse {
     private List<PopulationDto> populationList;
     private List<CrowdedAreaDto> crowdedAreaList;
     private List<ShelterWithBookmarkResponse> shelterList;
-    private String info;
-
+    private PopulationNearbyDto nearbyPopulation;
 }
